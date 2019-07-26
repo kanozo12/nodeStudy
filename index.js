@@ -51,6 +51,15 @@ app.use(function (req, res, next) {
 });
 //플래시 메시지 처리 미들웨어 종료
 
+//로그인 처리를 위한 미들웨어 시작
+app.use(function(req, res, next) {
+    if(req.session.user != undefined) {
+        res.locals.user = req.session.user;
+    }
+    next();
+});
+//로그인 처리를 위한 미들웨어 종료
+
 app.post('/register', function (req, res) {
     //body-parser를 앱에서 사용하도록 설정 -> post로 넘어온 값을 다음과 같이 처리
     let uid = req.body.uid;
@@ -97,6 +106,35 @@ app.post('/register', function (req, res) {
                     return;
                 }
             });
+        }
+    });
+});
+
+app.get('/login', function() {
+    res.render('login');
+});
+
+app.post('/login', function() {
+    let uid = req.body.uid;
+    let upw = req.body.upw;
+
+    let sql = "SELECT * FROM `nodeStudyUser` WHERE uid = ? AND upw = PASSWORD(?)";
+    conn.query(sql, [uid, upw], function(error, result) {
+        if(error) {
+            //SQL 입력중 에러 발생시 에러페이지로 보냄
+            res.render('error', {title : 'DB 연결 오류', msg : error.code});
+            return;
+        } else {
+            if(result.length == 1) {
+                //로그인 성공 
+                req.session.user = result[0]; //0번째 있는 값을 모두 넣어줌
+                req.session.flashMsg = { type : 'success', msg : '로그인 되었습니다.'};
+                res.redirect('/');
+            } else {
+                //로그인 실패
+                req.session.flashMsg = {type : 'warning', msg : '아이디와 비밀번호가 다릅니다.'};
+                res.redirect('back');
+            } 
         }
     });
 });
