@@ -72,6 +72,33 @@ app.post('/register', function (req, res) {
         return;
     }
 
+    let sql = "SELECT * FROM `nodeStudyUser` WHERE `uid` = ?";
+    conn.query(sql, [uid], function (error, result) {
+        if (error) {
+            //SQL 입력중 에러 발생시 에러페이지로 보낸다
+            res.render('error', { title: 'DB연결 오류', msg: error.code });
+            return;
+        } else {
+            if (result.length > 0) { //결과 값이 존재함
+                req.session.flashMsg = { type: 'warning', msg: '중복된 아이디가 있습니다.' };
+                res.redirect('back');
+                return;
+            }
+            sql = "INSERT INTO `nodeStudyUser` (`uid`, `uname`, `upw`) VALUES (?, ?, PASSWORD(?))";
+
+            conn.query(sql, [uid, uname, upw], function (error, result) {
+                if (error) {
+                    //SQL 입력중 에러 발생시 에러페이지로 보냄
+                    res.render('error', { title: 'DB 연결 오류', msg: error.code });
+                    return;
+                } else {
+                    req.session.flashMsg = { type: 'success', msg: '회원가입이 성공적으로 이루어졌습니다.' };
+                    res.redirect('/');
+                    return;
+                }
+            });
+        }
+    });
 });
 
 app.get('/', function (req, res) {
