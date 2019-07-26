@@ -1,35 +1,27 @@
-<!DOCTYPE html>
-<html lang="ko">
-    <% include includes/head %>
-    <body class="container">
-        <header>
-            <% include includes/header %>
-        </header>
-        <main>
-            <div class="row justify-content-center" style="margin:20px 0px">
-                <div class="col-md-10">
-                    <form method="post" action="/register">
-                        <div class="form-group">
-                            <label for="uid">ID</label>
-                            <input type="text" class="form-control" id="uid" name="uid" placeholder="사용자 ID를 입력하세요">
-                        </div>
-                        <div class="form-group">
-                            <label for="uname">이름</label>
-                            <input type="password" class="form-control" id="uname" name="uname" placeholder="사용자 이름을 입력하세요">
-                        </div>
-                        <div class="form-group">
-                            <label for="upw">비밀번호</label>
-                            <input type="password" class="form-control" id="upw" name="upw" placeholder="비밀번호를 입력하세요">
-                        </div>
-                        <div class="form-group">
-                            <label for="upwc">비밀번호</label>
-                            <input type="password" class="form-control" id="upwc" name="upwc" placeholder="비밀번호를 다시 입력하세요">
-                        </div>
-                        <button type="submit" class="btn btn-primary">회원가입</button>
-                    </form>
-                </div>
+<!doctype html>
+<html>
+
+<% include includes/head %>
+
+<body class="container">
+    <header> <% include includes/header %> </header>
+    <main>
+        <div class="row justify-content-center" style="margin:20px 0px;">
+            <div class="col-md-10">
+                <form method="post" action="/register">
+                    <div class="form-group"> <label for="uid">ID</label> <input type="text" class="form-control"
+                            id="uid" name="uid" placeholder="사용자 ID를 입력하세요"> </div>
+                    <div class="form-group"> <label for="uname">이름</label> <input type="password" class="form-control"
+                            id="uname" name="uname" placeholder="사용자 이름을 입력하세요"> </div>
+                    <div class="form-group"> <label for="upw">비밀번호</label> <input type="password" class="form-control"
+                            id="upw" name="upw" placeholder="비밀번호를 입력하세요"> </div>
+                    <div class="form-group"> <label for="upwc">비밀번호 확인</label> <input type="password"
+                            class="form-control" id="upwc" name="upwc" placeholder="비밀번호를 다시 입력하세요"> </div> <button
+                        type="submit" class="btn btn-primary">회원가입</button>
+                </form>
             </div>
-        </main>
-        <% include includes/footer %>
-    </body>
+        </div>
+    </main> <% include includes/footer %>
+</body>
+
 </html>
