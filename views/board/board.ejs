@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<% include ../includes/head %>
+
+<body class="container">
+    <header>
+        <% include ../includes/header %>
+    </header>
+    <main>
+        <div class="row justify-content-center" style="margin-top:30px;">
+            <div class="col-4 text-center">
+                <h1>자유게시판</h1>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-10">
+                <table class="table">
+                    <thead class="thead-dark">
+                        <tr class="text-center">
+                            <th>글번호</th>
+                            <th width="70%">제목</th>
+                            <th>글쓴이</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% for(let i = 0; i < list.length; i++) { %>
+                        <tr class="text-center">
+                            <td><%= list[i].id %></td>
+                            <td><a href="/board/view/<%= list[i].id %>"><%= list[i].title %></a></td>
+                            <td><%= list[i].writer %></td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+            <% if (locals.user) { %>
+
+            <div class="col-10"> <a href="/board/write" class="btn btn-primary">글쓰기</a> </div> <% } %>
+        </div>
+    </main> 
+    <% include ../includes/footer %>
+</body>
+
+</html>
