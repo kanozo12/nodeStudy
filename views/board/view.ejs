@@ -1,41 +1,36 @@
-<!DOCTYPE html>
-<html lang="ko">
-    <% include ../includes/head %>
-    <body class="container">
-        <header>
-            <% include ../includes/header %>
-        </header>
-        <main>
-            <div class="row justify-content-center" style="margin-top:30px;">
-                <div class="col-10">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="row">
-                                <div class="col">
-                                    글번호 : <% board.id %>
-                                </div>
-                                <div class="col-8">
-                                </div>
-                                <div class="col text-right">
-                                    글쓴이 : <%= board.writer %>
-                                </div>
-                            </div>
+<!doctype html>
+<html>
+<% include ../includes/head %>
+
+<body class="container">
+    <header>
+        <% include ../includes/header %>
+    </header>
+    <main>
+        <div class="row justify-content-center" style="margin-top:30px;">
+            <div class="col-10">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col"> 글번호 : <%= data.id %> </div>
+                            <div class="col-8"> </div>
+                            <div class="col text-right"> 글쓴이 : <%= data.writer %> </div>
                         </div>
-                        <div class="card-body">
-                            <h4 class="card-title"><%= board.title %></h4>
-                            <p class="card-text"><%= board.content </p>
-                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="card-title"><%= data.title %></h4>
+                        <p class="card-text"><%= data.content %></p>
                     </div>
                 </div>
             </div>
-            <div class="row" style="margin-top:30px;">
+        </div>
+        <div class="row" style="margin-top:30px;">
             <div class="col-4 offset-1">
-                <% if(delBtn) { %>
-                    <a href="/board/del/<%= board.id %>" class="btn btn-danger">삭제</a>
-                <% } %>
                 <a href="/board" class="btn btn-primary">목록으로</a>
             </div>
-        </main>
-        <% include ../includes/footer %>
-    </body>
+        </div>
+    </main>
+    <% include ../includes/footer %>
+</body>
+
 </html>

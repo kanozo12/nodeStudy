@@ -110,6 +110,15 @@ app.post('/register', function (req, res) {
     });
 });
 
+function checkLogin(req, res) {
+    if (req.session.user == undefined) {
+        req.session.flashMsg = { type: 'warning', msg: '로그인 후 시도하실 수 있습니다.' };
+        res.redirect('back');
+        return false;
+    } return true;
+}
+
+
 app.get('/login', function (req, res) {
     res.render('login');
 });
@@ -139,23 +148,11 @@ app.post('/login', function (req, res) {
     });
 });
 
-function checkLogin(req, res) {
-    if (req.session.user == undefined) {
-        req.session.flashMsg = { type: 'warning', msg: '로그인 후 시도하실 수 있습니다.' };
-        res.redirect('back');
-        return false;
-    } return true;
-}
-
 app.get('/logout', function (req, res) {
     if (!checkLogin(req, res)) { return; }
     delete req.session.user;
     req.session.flashMsg = { type: 'success', msg: '로그아웃되었습니다.' };
     res.redirect('/');
-});
-
-app.get('/board', function (req, res) {
-    res.render('board/board');
 });
 
 //글쓰기 라우터
@@ -166,111 +163,115 @@ app.get('/board/write', function (req, res) {
 });
 
 app.post('/board/write', function (req, res) {
-    if (!checkLogin(req, res)) { return; }
-    let writer = req.session.user.uid;
-    let title = req.body.title;
-    let content = req.body.content;
-
-    if (title == "" || content == "") {
-        req.session.flashMsg = { type: 'warning', msg: '값에 공백이 있습니다. 모든 값을 채워주세요.' };
-        res.render('back');
-        return;
-    }
-
-    let sql = "INSERT INTO nodeStudyBoard (title, writer, content) VALUES(?, ?, ?)";
+    if (!checkLogin(req, res)) { return; } 
+    let writer = req.session.user.uid; 
+    let title = req.body.title; 
+    let content = req.body.content; 
+    if (title == "" || content == "") { 
+        req.session.flashMsg = { type: 'warning', msg: '값에 공백이 있습니다. 모든 값을 채워주세요' } 
+        res.redirect('back'); 
+        return; 
+    } 
+    var sql = "INSERT INTO nodeStudyBoard (title, writer, content) VALUES(?, ?, ?)"; 
     conn.query(sql, [title, writer, content], function (error, result) {
-        if (error) {
-            console.log(title + ", " + writer + ", " + content);
-            res.render('error', { 'title': 'DB 연결 오류', msg: error.code });
-            return;
+        if (error) { 
+            console.log(title + ", " + writer + ", " + content); 
+            res.render('error', { 'title': 'DB 연결 오류', msg: error.code }); 
+            return; 
         } else {
-            //결과 상태의 affectedRows == 1 이면 성공
-            if (result.affectedRows == 1) {
-                req.session.flashMsg = { type: 'success', msg: '성공적으로 글이 작성되었습니다.' };
-                res.render('/board');
+            if (result.affectedRows == 1) { 
+                req.session.flashMsg = { type: 'success', msg: '성공적으로 글이 작성되었습니다.' }; 
+                res.redirect('/board'); 
             } else {
-                req.session.flashMsg = { type: 'warning', msg: '글 작성에 실패했습니다.' };
-                res.render('/board');
+                req.session.flashMsg = { type: 'warning', msg: '글작성에 실패했습니다.' };
+
+                res.redirect('/board');
             }
         }
     });
 });
 
 //글 목록 라우터
-app.get('/board', function (req, res) { 
-    let page = req.query.page; 
-    if (page == undefined || page < 1) { 
-        page = 1; 
-    } 
-    let sql = "SELECT * FROM nodeStudyBoard ORDER BY id DESC LIMIT ?, 10"; 
-    conn.query(sql, [(page - 1) * 10], function (error, result) { 
-        if (error) { 
-            res.render('error', { 'title': 'DB 연결 오류', msg:error.code }); 
-            return; 
-        } else { 
-            res.render('board/board', { list:result }); 
-        } 
-    }); 
-});
-
-app.get('/board/view/:id', function(req, res) { //해당 id에 맞는 글정보를 불러와서
-    let sql = "SELECT * FROM nodeStudyBoard WHERE id = ?";
-
-    conn.query(sql, [req.params.id], function(error, result) {
-        if(error) {
-            res.render('error', {'title' : 'DB 연결 오류', msg : error.code});
+app.get('/board', function (req, res) {
+    let page = req.query.page;
+    if (page == undefined || page < 1) {
+        page = 1;
+    }
+    let sql = "SELECT * FROM nodeStudyBoard ORDER BY id DESC LIMIT ?, 10";
+    conn.query(sql, [(page - 1) * 10], function (error, result) {
+        if (error) {
+            res.render('error', { 'title': 'DB 연결 오류', msg: error.code });
             return;
         } else {
-            res.render('board/view', {data : result[0]}); //데이터에 넣어 뷰로 보내줌
+            res.render('board/board', { list: result });
         }
     });
 });
 
-app.get('/board/view/:id', function(req, res) {
+app.get('/board', function (req, res) {
+    res.render('board/board');
+});
+
+//개별 글 읽기 라우터
+app.get('/board/view/:id', function (req, res) { //해당 id에 맞는 글정보를 불러와서
     let sql = "SELECT * FROM nodeStudyBoard WHERE id = ?";
-    conn.query(sql, [req.params.id], function(error, result) {
-        if(error) {
-            res.render('error', {'title' : 'DB 연결 오류', msg:error.code});
+
+    conn.query(sql, [req.params.id], function (error, result) {
+        if (error) {
+            res.render('error', { 'title': 'DB 연결 오류', msg: error.code });
             return;
         } else {
-            if(result.length != 1) {
-                req.session.flashMsg = { type:'warning', msg:'해당 글은 존재하지 않습니다.'};
+            res.render('board/view', { data: result[0] }); //데이터에 넣어 뷰로 보내줌
+        }
+    });
+});
+
+//글 삭제 라우터
+app.get('/board/view/:id', function (req, res) {
+    let sql = "SELECT * FROM nodeStudyBoard WHERE id = ?";
+    conn.query(sql, [req.params.id], function (error, result) {
+        if (error) {
+            res.render('error', { 'title': 'DB 연결 오류', msg: error.code });
+            return;
+        } else {
+            if (result.length != 1) {
+                req.session.flashMsg = { type: 'warning', msg: '해당 글은 존재하지 않습니다.' };
                 res.redirect('back');
                 return;
             }
             let delBtn = false;
-            if(req.session.user) {
-                if(req.session.user.uid == result[0].writer) {
+            if (req.session.user) {
+                if (req.session.user.uid == result[0].writer) {
                     delBtn = true;
                 }
             }
-            res.render('board/view', {'board' : result[0], 'delBtn' : 'delBtn'});
+            res.render('board/view', { 'board': result[0], 'delBtn': 'delBtn' });
         }
     });
 });
 
-app.get('board/del/:id', function(req, res) {
-    if(!checkLogin(req, res)) { return; }
-    
+app.get('board/del/:id', function (req, res) {
+    if (!checkLogin(req, res)) { return; }
+
     let sql = "SELECT * FROM nodeStudyBoard WHERE id = ?";
-    conn.query(sql, [req.params.id], function(error, result) {
-        if(error) {
-            res.render('error', {title : 'DB 연결 오류', msg:error.code});
+    conn.query(sql, [req.params.id], function (error, result) {
+        if (error) {
+            res.render('error', { title: 'DB 연결 오류', msg: error.code });
             return;
         } else {
-            if(result[0] && result[0].writer == req.session.user.uid) {
+            if (result[0] && result[0].writer == req.session.user.uid) {
                 //올바른 권한이 있다면 DELETE 쿼리를 날림
                 sql = "DELETE FROM nodeStudyBoard WHERE id = ?";
-                conn.query(sql, [req.params.id], function(error, result) {
-                    if(error) {
-                        res.render('error', {title : 'DB 연결 오류', msg : error.code});
+                conn.query(sql, [req.params.id], function (error, result) {
+                    if (error) {
+                        res.render('error', { title: 'DB 연결 오류', msg: error.code });
                         return;
                     }
-                    req.session.flashMsg = {type : 'success', msg:'성공적으로 삭제되었습니다.'};
+                    req.session.flashMsg = { type: 'success', msg: '성공적으로 삭제되었습니다.' };
                     res.redirect('/board');
                 });
             } else {
-                req.session.flashMsg = {type : 'warning', msg:'글을 삭제할 권한이 없습니다.'};
+                req.session.flashMsg = { type: 'warning', msg: '글을 삭제할 권한이 없습니다.' };
                 res.redirect('back');
                 return;
             }
