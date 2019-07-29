@@ -60,6 +60,10 @@ app.use(function (req, res, next) {
 });
 //로그인 처리를 위한 미들웨어 종료
 
+//페이징용 객체 가져오기 미들웨어//
+let pager = require('./pager.js');
+//페이징용 객체 가져오기 미들웨어 종료//
+
 app.post('/register', function (req, res) {
     //body-parser를 앱에서 사용하도록 설정 -> post로 넘어온 값을 다음과 같이 처리
     let uid = req.body.uid;
@@ -159,29 +163,29 @@ app.get('/logout', function (req, res) {
 app.get('/board/write', function (req, res) {
     if (!checkLogin(req, res)) { return; }
 
-    res.render('/board/write');
+    res.render('board/write');
 });
 
 app.post('/board/write', function (req, res) {
-    if (!checkLogin(req, res)) { return; } 
-    let writer = req.session.user.uid; 
-    let title = req.body.title; 
-    let content = req.body.content; 
-    if (title == "" || content == "") { 
-        req.session.flashMsg = { type: 'warning', msg: '값에 공백이 있습니다. 모든 값을 채워주세요' } 
-        res.redirect('back'); 
-        return; 
-    } 
-    var sql = "INSERT INTO nodeStudyBoard (title, writer, content) VALUES(?, ?, ?)"; 
+    if (!checkLogin(req, res)) { return; }
+    let writer = req.session.user.uid;
+    let title = req.body.title;
+    let content = req.body.content;
+    if (title == "" || content == "") {
+        req.session.flashMsg = { type: 'warning', msg: '값에 공백이 있습니다. 모든 값을 채워주세요' }
+        res.redirect('back');
+        return;
+    }
+    var sql = "INSERT INTO nodeStudyBoard (title, writer, content) VALUES(?, ?, ?)";
     conn.query(sql, [title, writer, content], function (error, result) {
-        if (error) { 
-            console.log(title + ", " + writer + ", " + content); 
-            res.render('error', { 'title': 'DB 연결 오류', msg: error.code }); 
-            return; 
+        if (error) {
+            console.log(title + ", " + writer + ", " + content);
+            res.render('error', { 'title': 'DB 연결 오류', msg: error.code });
+            return;
         } else {
-            if (result.affectedRows == 1) { 
-                req.session.flashMsg = { type: 'success', msg: '성공적으로 글이 작성되었습니다.' }; 
-                res.redirect('/board'); 
+            if (result.affectedRows == 1) {
+                req.session.flashMsg = { type: 'success', msg: '성공적으로 글이 작성되었습니다.' };
+                res.redirect('/board');
             } else {
                 req.session.flashMsg = { type: 'warning', msg: '글작성에 실패했습니다.' };
 
@@ -197,14 +201,33 @@ app.get('/board', function (req, res) {
     if (page == undefined || page < 1) {
         page = 1;
     }
-    let sql = "SELECT * FROM nodeStudyBoard ORDER BY id DESC LIMIT ?, 10";
-    conn.query(sql, [(page - 1) * 10], function (error, result) {
-        if (error) {
-            res.render('error', { 'title': 'DB 연결 오류', msg: error.code });
-            return;
-        } else {
-            res.render('board/board', { list: result });
-        }
+
+    let cntPromise = new Promise(function (resolve, reject) { //프로미스 패턴
+        let sql = "SELECT count(*) as cnt FROM nodeStudyBoard";
+        conn.query(sql, function (error, result) {
+            if (error) {
+                reject(result[0].cnt); 
+            }
+            resolve(result[0].cnt); //성공적으로 종료시 카운트 값을 돌려줌
+        });
+    });
+
+    cntPromise.then(function (cnt) {
+        let pagingObj = pager.pager(page, cnt, 10, 10);
+
+        let sql = "SELECT id, title, writer FROM nodeStudyBoard ORDER BY id DESC LIMIT ?, 10";
+
+        conn.query(sql, [(page - 1) * 10], function (error, result) {
+            if (error) {
+                res.render('error', { 'title': 'DB 연결 오류', msg: error.code });
+                return;
+            } else {
+                res.render('board/board', { list: result, pager:pagingObj });
+            }
+        });
+    }, function(err) {
+        res.render('error', {'title' : 'DB 연결 오류', msg : error.code});
+        return;
     });
 });
 
@@ -278,6 +301,7 @@ app.get('board/del/:id', function (req, res) {
         }
     });
 });
+
 
 app.get('/', function (req, res) {
     res.render('index');

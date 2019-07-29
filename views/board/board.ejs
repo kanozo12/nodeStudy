@@ -33,11 +33,43 @@
                     </tbody>
                 </table>
             </div>
-            <% if (locals.user) { %>
+            <div class="col-10">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        <% if (pager.before) { %>
+                            <li class="page-item"> <a class="page-link" href="/board?page=<%= pager.startPage - 1 %>"
+                                    aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                    <span class="sr-only">Previous</span>
+                                </a>
+                            </li>
+                        <% } %>
+                        <% for(var i = pager.startPage; i <= pager.endPage; i++ ) { %>
+                            <li class="page-item<% if(pager.nowPage == i) { %> active <%}%>">
+                            <a class="page-link" href="/board?page=<%= i %>">
+                                <%= i %>
+                                </a>
+                            </li>
+                        <% } %>
 
-            <div class="col-10"> <a href="/board/write" class="btn btn-primary">글쓰기</a> </div> <% } %>
+                        <% if (pager.next) { %> 
+                            <li class="page-item"> 
+                                <a class="page-link" href="/board?page=<%= pager.endPage + 1 %>" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                    <span class="sr-only">Next</span>
+                                </a>
+                            </li>
+                        <% } %>
+                    </ul>
+                </nav>
+            </div>
+            <% if (locals.user) { %>
+                <div class=" col-10"> 
+                    <a href="/board/write" class="btn btn-primary">글쓰기</a>
+                </div> 
+            <% } %>
         </div>
-    </main> 
+    </main>
     <% include ../includes/footer %>
 </body>
 
